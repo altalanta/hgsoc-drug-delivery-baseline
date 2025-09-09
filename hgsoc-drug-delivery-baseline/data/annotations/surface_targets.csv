@@ -1,0 +1,8 @@
+gene,label,is_surface,internalization_rate,normal_ovary_expr,tumor_expr_scale,notes
+FOLR1,Folate Receptor Alpha,1,fast,0.5,3.0,FRα overexpressed in subset of HGSOC
+MSLN,Mesothelin,1,fast,0.3,2.5,Cell-surface glycoprotein; mesothelin-targeted agents
+MUC16,CA125,1,slow,1.0,2.0,High serum marker; very large mucin
+EGFR,EGFR,1,fast,0.8,1.8,Subset expression; tyrosine kinase receptor
+CLDN6,Claudin-6,1,moderate,0.2,1.6,Embryonic claudin; limited normal expression
+ITGAV,Integrin alpha-V,1,moderate,0.9,1.5,Integrin-mediated targeting
+VEGFA,VEGF-A,0,NA,0.6,1.7,Secreted; not cell-surface receptor
