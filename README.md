@@ -1,42 +1,65 @@
-HGSOC Drug Delivery Baseline
+# HGSOC Drug Delivery Baseline
 
-Overview
-- Goal: Demonstrate end-to-end reasoning for drug delivery in High-Grade Serous Ovarian Cancer (HGSOC) using synthetic data: target prioritization from tumor expression, formulation/route choices, and simple PK/PD delivery simulations to compare strategies.
-- Scope: Synthetic cohort generation, target scoring, delivery modality choice (IV/IP; small molecule, ADC, ligand-targeted nanoparticle), basic three-compartment PK for tumor exposure, and clear plots/CSV outputs.
-- Note: All data are synthetic and for demonstration only.
+Synthetic pharmacokinetic/pharmacodynamic (PK/PD) playground for High-Grade Serous Ovarian Cancer. The project simulates a cohort, fits interpretable (logistic regression) and non-linear (Histogram Gradient Boosting) models, and reports calibration, subgroup fairness, and PK prior sensitivity.
 
-Project Structure
-- `data/annotations/surface_targets.csv` — Minimal target metadata (e.g., FOLR1, MSLN, MUC16, EGFR, CLDN6).
-- `scripts/generate_synthetic_hgsoc_cohort.py` — Creates a synthetic patient cohort with target expression, HRD/platinum status, tumor burden, ascites, etc.
-- `analysis/target_prioritization.py` — Combines cohort expression with annotations to rank targets per-patient and at population level.
-- `modeling/pkpd_delivery_sim.py` — ODE-based delivery model for IV/IP routes and modalities (small molecule vs nanoparticle-like), computes AUC/Cmax metrics.
-- `analysis/design_and_selection.py` — Orchestrates: pick a target and route, sweep formulation parameters, run simulations, produce candidate rankings and figures.
-- `outputs/` — Saved CSVs and figures.
+> **Capabilities**: deterministic cohort simulation, feature engineering with scaling + interactions, dual-model training (logreg & HGB), calibration/Brier/ROC/PR diagnostics, subgroup fairness tables, PK prior stress tests, optional Streamlit scenario explorer.
+>
+>  **Not in scope**: clinical recommendations, mechanistic dosing, real patient data, uncertainty quantification beyond simple bands, EHR integration.
 
-Quick Start
-1) Install dependencies
-   - `pip install -r requirements.txt`
-2) Generate a synthetic cohort (100 patients)
-   - `python scripts/generate_synthetic_hgsoc_cohort.py --n 100 --out data/synthetic_hgsoc_cohort.csv`
-3) Rank targets
-   - `python analysis/target_prioritization.py --cohort data/synthetic_hgsoc_cohort.csv --annotations data/annotations/surface_targets.csv --outdir outputs`
-4) Design & simulate delivery strategies
-   - `python analysis/design_and_selection.py --cohort data/synthetic_hgsoc_cohort.csv --annotations data/annotations/surface_targets.csv --target FOLR1 --route IP --outdir outputs`
+## Quickstart
 
-What It Demonstrates
-- Domain-aware feature engineering: target surface accessibility, internalization, tumor-to-normal expression, and delivery route feasibility (e.g., IP in HGSOC with ascites).
-- Model-driven comparison: contrasts IV vs IP and small molecules vs nanoparticles for tumor AUC vs systemic exposure.
-- Decision support artifacts: CSV rankings and plots for communication.
+```bash
+make env        # create virtualenv + install deps
+make simulate   # generate synthetic cohort (parquet)
+make train      # train logistic + HGB models, save to artifacts/
+make eval       # produce metrics, calibration/ROC/PR plots, fairness tables
+make report     # render markdown summary in reports/README.md
+```
 
-Assumptions & Limitations
-- Simplified PK: three compartments (plasma, peritoneal, tumor interstitium) with first-order transfers; parameters are illustrative.
-- Target biology is represented by coarse annotations; replace with real consortia data (e.g., CPTAC/TCGA) when available.
-- No clinical recommendations; for educational/portfolio purposes only.
+All steps complete on CPU within a few minutes for `n=500` subjects.
 
-Next Extensions
-- Calibrate PK/PD parameters to literature per modality and particle size; add receptor binding/internalization kinetics (TMDD) for ADCs.
-- Add multi-objective optimization (e.g., NSGA-II) over particle size, release half-life, and dose.
-- Integrate public expression datasets (after curation) to move beyond synthetic data.
+## Layout
 
-License
-- MIT (see LICENSE)
+```
+hgsoc/
+├── src/hgsoc/        # simulation, features, models, eval, report, streamlit app
+├── artifacts/        # trained models + feature spec (checked in for demo)
+├── reports/          # metrics.json, calibration.png, roc_pr.png, subgroup_table.csv, README.md
+├── notebooks/        # lightweight PK sensitivity scratch notebook
+└── tests/            # pytest smoke tests for simulation + calibration
+```
+
+## Sample metrics (from `reports/metrics.json`)
+
+| Model | ROC AUC | PR AUC | Brier |
+|-------|---------|--------|-------|
+| Logistic Regression | 0.760 | 0.357 | 0.204 |
+| HistGradientBoosting | 0.943 | 0.907 | 0.036 |
+
+- Calibration slope ≈ 1.371, intercept ≈ 0.332
+- Subgroup Brier gap (stage / size splits): 0.058
+- PK prior stress (clearance ±10%): ΔBrier of +0.024 / +0.027
+
+## Artifacts
+
+Pre-generated diagnostics are committed for reviewers:
+
+- `reports/calibration.png` – reliability curve (10-bin).
+- `reports/roc_pr.png` – ROC + PR charts for the HGB model.
+- `reports/subgroup_table.csv` – Brier scores by stage and tumor size terciles.
+- `reports/metrics.json` & `reports/README.md` – machine-readable metrics + lite model card.
+
+## Streamlit demo
+
+Optional UI for rapid “what-if” experimentation:
+
+```bash
+streamlit run src/hgsoc/app.py
+```
+
+Sliders control ligand density, tumor size, perfusion, PK clearance/volume, PD sensitivity, and stage. Predictions from both models plus an approximate confidence band are displayed alongside the hold-out calibration curve.
+
+## Responsible use
+
+This repository is intended for interview-style discussions and rapid prototyping. No real patients, dosing, or clinical outcomes are represented. Always verify assumptions with domain experts before carrying insights forward.
+
