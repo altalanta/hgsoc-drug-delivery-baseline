@@ -1,0 +1,17 @@
+name: hgsoc
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - numpy
+      - pandas
+      - scikit-learn
+      - matplotlib
+      - scipy
+      - pytest
+      - streamlit
+      - pyarrow
+      - joblib

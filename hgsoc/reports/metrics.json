@@ -1,0 +1,13 @@
+{
+  "logreg_roc_auc": 0.7595165588123335,
+  "logreg_pr_auc": 0.3571341029945729,
+  "logreg_brier": 0.20367998892847977,
+  "hgb_roc_auc": 0.9426785940870448,
+  "hgb_pr_auc": 0.9065124701693401,
+  "hgb_brier": 0.035946440720266745,
+  "calibration_intercept": 0.33195834792139634,
+  "calibration_slope": 1.3708712853079041,
+  "subgroup_brier_gap": 0.058306495367091454,
+  "pk_prior_minus10_delta": 0.023626606661460013,
+  "pk_prior_plus10_delta": 0.027404279594906128
+}
